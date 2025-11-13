@@ -1,86 +1,103 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>노선표</title>
-<link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>성주읍 순환버스 노선</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f6f8fa;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+    header {
+      background-color: #2563eb;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+    main {
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+    h2 {
+      color: #2563eb;
+      margin-top: 10px;
+    }
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    li {
+      background: white;
+      margin: 4px 0;
+      padding: 8px 12px;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      color: #555;
+      font-size: 0.9rem;
+      padding-bottom: 20px;
+    }
+  </style>
 </head>
 <body>
-  <main class="container" id="app">
-    <header>
-      <button id="back">← 뒤로</button>
-      <h1 id="title">노선</h1>
-      <div id="qr-wrap"></div>
-    </header>
-
-    <section id="stops-section">
-      <h2 id="stops-title">정류장</h2>
-      <ol id="stops"></ol>
-    </section>
-
-    <section id="timetable-section">
-      <h2>운행 시각표</h2>
-      <div id="timetable" class="grid"></div>
-    </section>
-
-    <section id="notes-section">
-      <p id="notes"></p>
-    </section>
-
+  <header id="route-title">성주읍 순환버스</header>
+  <main>
+    <h2 id="route-name"></h2>
+    <p><strong>🕒 운행 간격:</strong> <span id="interval"></span></p>
+    <p><strong>📅 평일 시간표:</strong> <span id="weekday"></span></p>
+    <p><strong>📅 주말 시간표:</strong> <span id="weekend"></span></p>
+    <p><strong>ℹ️ 비고:</strong> <span id="notes"></span></p>
+    <h3>🚌 정류장 목록</h3>
+    <ul id="stops"></ul>
   </main>
+  <footer>© 성주읍 순환버스 다국어 서비스</footer>
 
-<script>
-async function load() {
-  const params = new URLSearchParams(location.search);
-  const routeId = params.get('route') || '1';
-  const lang = params.get('lang') || 'ko';
+  <script>
+    async function loadRoute() {
+      const params = new URLSearchParams(window.location.search);
+      const routeId = params.get("route") || "1";
+      const lang = params.get("lang") || localStorage.getItem("selectedLang") || "ko";
 
-  const res = await fetch('routes.json');
-  const json = await res.json();
-  const route = json.routes.find(r => r.id === routeId);
-  if (!route) {
-    document.getElementById('stops').innerHTML = '<li>노선 정보를 찾을 수 없습니다.</li>';
-    return;
-  }
+      try {
+        // 항상 최신 데이터 불러오기
+        const res = await fetch("routes.json?v=" + Date.now());
+        const json = await res.json();
+        const route = json.routes.find(r => r.id === routeId);
+        if (!route) throw new Error("해당 노선을 찾을 수 없습니다.");
 
-  const title = (route.title && route.title[lang]) || route.title.ko || '노선';
-  document.getElementById('title').innerText = title;
+        // 제목과 상단 헤더에 올바른 노선명 표시
+        const titleText = route.title[lang] || route.title.ko;
+        document.getElementById("route-title").textContent = titleText;
+        document.getElementById("route-name").textContent = titleText;
 
-  const stops = (route.stops && route.stops[lang]) || route.stops.ko;
-  const ol = document.getElementById('stops');
-  ol.innerHTML = '';
-  stops.forEach(s => {
-    const li = document.createElement('li');
-    li.innerText = s;
-    ol.appendChild(li);
-  });
+        // 세부 정보 표시
+        document.getElementById("interval").textContent = route.interval;
+        document.getElementById("weekday").textContent = route.weekday.join(", ");
+        document.getElementById("weekend").textContent = route.weekend.join(", ");
+        document.getElementById("notes").textContent = route.notes[lang] || route.notes.ko;
 
-  const tt = route.timetable || [];
-  const grid = document.getElementById('timetable');
-  grid.innerHTML = '';
-  tt.forEach(time => {
-    const d = document.createElement('div');
-    d.className = 'timecell';
-    d.innerText = time;
-    grid.appendChild(d);
-  });
+        // 정류장 목록 표시
+        const stops = route.stops[lang] || route.stops.ko;
+        document.getElementById("stops").innerHTML =
+          stops.map(stop => `<li>${stop}</li>`).join("");
+      } catch (err) {
+        console.error(err);
+        document.body.innerHTML = "<p style='padding:20px;'>노선 정보를 불러올 수 없습니다.</p>";
+      }
+    }
 
-  const notesText = (route.notes && (route.notes[lang] || route.notes.ko)) || '';
-  document.getElementById('notes').innerText = notesText;
-
-  const fullUrl = location.origin + location.pathname + '?route=' + encodeURIComponent(routeId) + '&lang=' + encodeURIComponent(lang);
-  const qrImg = document.createElement('img');
-  qrImg.src = 'https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=' + encodeURIComponent(fullUrl);
-  qrImg.alt = 'QR for ' + title;
-  qrImg.width = 200;
-  document.getElementById('qr-wrap').innerHTML = '';
-  document.getElementById('qr-wrap').appendChild(qrImg);
-
-  document.getElementById('back').addEventListener('click', () => history.back());
-}
-
-load();
-</script>
+    loadRoute();
+  </script>
 </body>
 </html>
+
