@@ -1,53 +1,91 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>성주읍 순환버스 안내</title>
-<link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>성주읍 순환버스</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8fafc;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      color: #222;
+    }
+    header {
+      background-color: #2563eb;
+      color: white;
+      padding: 15px;
+      font-size: 1.3rem;
+      font-weight: bold;
+    }
+    main {
+      margin-top: 40px;
+    }
+    select {
+      font-size: 1rem;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .routes {
+      margin-top: 25px;
+    }
+    button {
+      display: block;
+      margin: 10px auto;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      width: 220px;
+    }
+    button:hover {
+      background-color: #1e40af;
+    }
+    footer {
+      margin-top: 60px;
+      font-size: 0.9rem;
+      color: #666;
+    }
+  </style>
 </head>
 <body>
-  <main class="container">
-    <h1>성주읍 순환버스</h1>
-    <p>언어를 선택하고 노선을 고르세요.</p>
-
-    <label for="lang">언어</label>
-    <select id="lang">
+  <header>성주읍 순환버스 노선 안내</header>
+  <main>
+    <p>언어를 선택하세요 / Select your language:</p>
+    <select id="langSelect">
       <option value="ko">한국어</option>
       <option value="en">English</option>
-      <option value="zh">中文</option>
-      <option value="vi">Tiếng Việt</option>
-      <option value="th">ไทย</option>
-      <option value="tl">Tagalog</option>
-      <option value="km">Khmer</option>
+      <option value="zh">中文 (Chinese)</option>
+      <option value="vi">Tiếng Việt (Vietnamese)</option>
+      <option value="th">ภาษาไทย (Thai)</option>
+      <option value="tl">Filipino</option>
+      <option value="km">ភាសាខ្មែរ (Khmer)</option>
     </select>
 
-    <label for="route">노선</label>
-    <select id="route">
-      <option value="1">순환1번</option>
-      <option value="2">순환2번</option>
-      <option value="3">순환3번</option>
-      <option value="3">순환4번</option>
-    </select>
-
-    <button id="open">확인</button>
-
-    <footer class="small">QR로 접속 시 자동으로 노선 파라미터(route=1 등)가 붙습니다.</footer>
+    <div class="routes">
+      <button onclick="goRoute(1)">🚍 순환 1번 보기</button>
+      <button onclick="goRoute(2)">🚍 순환 2번 보기</button>
+      <button onclick="goRoute(3)">🚍 순환 3번 보기</button>
+      <button onclick="goRoute(4)">🚍 순환 4번 보기</button>
+    </div>
   </main>
 
-<script>
-document.getElementById('open').addEventListener('click', () => {
-  const lang = document.getElementById('lang').value;
-  const route = document.getElementById('route').value;
-  location.href = `route.html?route=${encodeURIComponent(route)}&lang=${encodeURIComponent(lang)}`;
-});
+  <footer>© 성주읍 순환버스 다국어 서비스</footer>
 
-const params = new URLSearchParams(location.search);
-if (params.get('route')) {
-  const r = params.get('route');
-  const l = params.get('lang') || 'ko';
-  location.href = `route.html?route=${encodeURIComponent(r)}&lang=${encodeURIComponent(l)}`;
-}
-</script>
+  <script>
+    function goRoute(num) {
+      const selectedLang = document.getElementById("langSelect").value;
+      // 사용자가 선택한 언어를 저장해두기
+      localStorage.setItem("selectedLang", selectedLang);
+      // 선택한 노선으로 이동
+      window.location.href = `route.html?route=${num}&lang=${selectedLang}`;
+    }
+  </script>
 </body>
 </html>
